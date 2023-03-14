@@ -124,14 +124,12 @@ fn backtrace(
 
 #[cfg(test)]
 mod tests {
-    use super::EditType::{Delete, Equal, Insert, Transpose};
+    use super::EditType::{Delete, Equal, Insert, Sub, Transpose};
     use super::*;
     struct TestString {
         source: String,
         target: String,
         options: Options,
-        //        distance: usize,
-        //       ratio: f64,
         script: EditScript,
     }
     fn test_data() -> Vec<TestString> {
@@ -140,17 +138,105 @@ mod tests {
                 source: "".to_string(),
                 target: "a".to_string(),
                 options: DEFAULT_OPTIONS,
-                // distance: 1,
-                // ratio: 0.0,
                 script: vec![Insert],
+            },
+            TestString {
+                source: "a".to_string(),
+                target: "aa".to_string(),
+                options: DEFAULT_OPTIONS,
+                script: vec![Equal, Insert],
+            },
+            TestString {
+                source: "a".to_string(),
+                target: "aaa".to_string(),
+                options: DEFAULT_OPTIONS,
+                script: vec![Equal, Insert, Insert],
+            },
+            TestString {
+                source: "".to_string(),
+                target: "".to_string(),
+                options: DEFAULT_OPTIONS,
+                script: vec![],
+            },
+            TestString {
+                source: "a".to_string(),
+                target: "b".to_string(),
+                options: DEFAULT_OPTIONS,
+                script: vec![Sub],
+            },
+            TestString {
+                source: "aaa".to_string(),
+                target: "aba".to_string(),
+                options: DEFAULT_OPTIONS,
+                script: vec![Equal, Sub, Equal],
+            },
+            TestString {
+                source: "aaa".to_string(),
+                target: "ab".to_string(),
+                options: DEFAULT_OPTIONS,
+                script: vec![Equal, Sub, Delete],
+            },
+            TestString {
+                source: "a".to_string(),
+                target: "a".to_string(),
+                options: DEFAULT_OPTIONS,
+                script: vec![Equal],
+            },
+            TestString {
+                source: "ab".to_string(),
+                target: "ab".to_string(),
+                options: DEFAULT_OPTIONS,
+                script: vec![Equal, Equal],
             },
             TestString {
                 source: "a".to_string(),
                 target: "".to_string(),
                 options: DEFAULT_OPTIONS,
-                // distance: 1,
-                // ratio: 0.0,
                 script: vec![Delete],
+            },
+            TestString {
+                source: "aa".to_string(),
+                target: "a".to_string(),
+                options: DEFAULT_OPTIONS,
+                script: vec![Equal, Delete],
+            },
+            TestString {
+                source: "aaa".to_string(),
+                target: "a".to_string(),
+                options: DEFAULT_OPTIONS,
+                script: vec![Equal, Delete, Delete],
+            },
+            TestString {
+                source: "kitten".to_string(),
+                target: "sitting".to_string(),
+                options: DEFAULT_OPTIONS,
+
+                script: vec![Sub, Equal, Equal, Equal, Sub, Equal, Insert],
+            },
+            TestString {
+                source: "Orange".to_string(),
+                target: "Apple".to_string(),
+                options: DEFAULT_OPTIONS,
+
+                script: vec![Sub, Sub, Sub, Sub, Delete, Equal],
+            },
+            TestString {
+                source: "ab".to_string(),
+                target: "bc".to_string(),
+                options: DEFAULT_OPTIONS,
+                script: vec![Delete, Equal, Insert],
+            },
+            TestString {
+                source: "abd".to_string(),
+                target: "bec".to_string(),
+                options: DEFAULT_OPTIONS,
+                script: vec![Delete, Equal, Sub, Insert],
+            },
+            TestString {
+                source: "me".to_string(),
+                target: "meme".to_string(),
+                options: DEFAULT_OPTIONS,
+                script: vec![Equal, Equal, Insert, Insert],
             },
             TestString {
                 source: "fish".to_string(),
@@ -192,11 +278,22 @@ mod tests {
     fn test_edit_script_for_strings() {
         for t in test_data() {
             let script = edit_script_for_strings(&t.source, &t.target, t.options);
-            println!("{:?}", script);
-            assert_eq!(t.script.len(), script.len());
+            assert_eq!(
+                t.script.len(),
+                script.len(),
+                "failed on comparing {} to {} results {:?}, {:?}",
+                t.source,
+                t.target,
+                t.script,
+                script,
+            );
 
             for (i, el) in t.script.iter().enumerate() {
-                assert_eq!(*el, script[i], "failed at index {}", i)
+                assert_eq!(
+                    *el, script[i],
+                    "failed on test {}, t.source, failed at index {}",
+                    t.source, i
+                )
             }
         }
     }
