@@ -1,4 +1,8 @@
-use std::cmp;
+use osa::Matrix;
+
+pub mod grid;
+pub mod osa;
+pub mod vec;
 
 #[derive(Debug, PartialEq)]
 pub enum EditType {
@@ -7,6 +11,11 @@ pub enum EditType {
     Sub,
     Equal,
     Transpose,
+}
+#[derive(Copy, Clone)]
+pub enum MatrixType {
+    Vec,
+    Grid,
 }
 
 pub type EditScript = Vec<EditType>;
@@ -41,89 +50,30 @@ pub const DEFAULT_OPTIONS_WITH_SUB: Options = Options {
     transp_cost: 1,
     equals: identical_chars,
 };
-pub fn edit_script_for_strings(source: &str, target: &str, op: Options) -> EditScript {
-    let source: Vec<char> = source.chars().collect();
-    let target: Vec<char> = target.chars().collect();
-    return backtrace(
-        source.len(),
-        target.len(),
-        &source,
-        &target,
-        matrix_for_strings(&source, &target, op),
-        op,
-    );
+
+pub fn get_script<T>(source: &str, target: &str, options: Options) -> EditScript
+where
+    T: Matrix,
+{
+    let matrix = T::new(source.len() + 1, target.len() + 1);
+    let mut osa = osa::Osa::new(source, target, options, matrix);
+    return osa.edit_script_for_strings();
 }
 
-pub fn matrix_for_strings(source: &Vec<char>, target: &Vec<char>, op: Options) -> Vec<Vec<usize>> {
-    let height = source.len() + 1;
-    let width = target.len() + 1;
-
-    let mut matrix = vec![vec![0; width]; height];
-    for i in 0..height {
-        matrix[i][0] = i * op.del_cost
-    }
-    for j in 0..width {
-        matrix[0][j] = j * op.ins_cost
-    }
-    for i in 1..height {
-        for j in 1..width {
-            let del_cost = matrix[i - 1][j] + op.del_cost;
-            let mut match_sub_cost = matrix[i - 1][j - 1];
-            if !(op.equals)(source[(i - 1)], target[j - 1]) {
-                match_sub_cost += op.sub_cost;
-            }
-            let ins_cost = matrix[i][j - 1] + op.ins_cost;
-            matrix[i][j] = cmp::min(del_cost, cmp::min(match_sub_cost, ins_cost));
-            if i > 1 && j > 1 && source[i - 1] == target[j - 2] && source[i - 2] == target[j - 1] {
-                let transp_cost = matrix[i - 2][j - 2] + op.transp_cost;
-                matrix[i][j] = cmp::min(matrix[i][j], transp_cost)
-            }
-        }
-    }
-    return matrix;
-}
-
-fn backtrace(
-    i: usize,
-    j: usize,
-    source: &Vec<char>,
-    target: &Vec<char>,
-    matrix: Vec<Vec<usize>>,
-    op: Options,
-) -> EditScript {
-    if i > 1 && j > 1 && source[i - 1] == target[j - 2] && source[i - 2] == target[j - 1] {
-        if matrix[i - 2][j - 2] < matrix[i][j] {
-            let mut v = backtrace(i - 2, j - 2, source, target, matrix, op);
-            v.push(EditType::Transpose);
-            v.push(EditType::Transpose);
-            return v;
-        }
-    }
-    if i > 0 && matrix[i - 1][j] + op.del_cost == matrix[i][j] {
-        let mut v = backtrace(i - 1, j, source, target, matrix, op);
-        v.push(EditType::Delete);
-        return v;
-    }
-    if j > 0 && matrix[i][j - 1] + op.ins_cost == matrix[i][j] {
-        let mut v = backtrace(i, j - 1, source, target, matrix, op);
-        v.push(EditType::Insert);
-        return v;
-    }
-    if i > 0 && j > 0 && matrix[i - 1][j - 1] + op.sub_cost == matrix[i][j] {
-        let mut v = backtrace(i - 1, j - 1, source, target, matrix, op);
-        v.push(EditType::Sub);
-        return v;
-    }
-    if i > 0 && j > 0 && matrix[i - 1][j - 1] == matrix[i][j] {
-        let mut v = backtrace(i - 1, j - 1, source, target, matrix, op);
-        v.push(EditType::Equal);
-        return v;
-    }
-    return vec![];
+pub fn get_matrix<T>(source: &str, target: &str, options: Options) -> T
+where
+    T: Matrix,
+{
+    let matrix = T::new(source.len() + 1, target.len() + 1);
+    let mut osa = osa::Osa::new(source, target, options, matrix);
+    osa.matrix_for_strings();
+    return osa.matrix;
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::vec::VecMatrix;
+
     use super::EditType::{Delete, Equal, Insert, Sub, Transpose};
     use super::*;
     struct TestString {
@@ -277,7 +227,7 @@ mod tests {
     #[test]
     fn test_edit_script_for_strings() {
         for t in test_data() {
-            let script = edit_script_for_strings(&t.source, &t.target, t.options);
+            let script = get_script::<VecMatrix>(&t.source, &t.target, t.options);
             assert_eq!(
                 t.script.len(),
                 script.len(),
@@ -300,13 +250,9 @@ mod tests {
     #[test]
     fn test_matrix() {
         for t in test_matrix_data() {
-            let result = matrix_for_strings(
-                &t.source.chars().collect(),
-                &t.target.chars().collect(),
-                t.options,
-            );
-            assert_eq!(result.len(), t.matrix.len());
-            for (i, row) in result.iter().enumerate() {
+            let result = get_matrix::<VecMatrix>(&t.source, &t.target, t.options);
+            assert_eq!(result.matrix.len(), t.matrix.len());
+            for (i, row) in result.matrix.iter().enumerate() {
                 assert_eq!(row.len(), t.matrix[i].len());
                 for (a, b) in row.iter().zip(t.matrix[i].iter()) {
                     assert_eq!(a, b, "values don't match in row {}", i)
