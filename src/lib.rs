@@ -1,4 +1,4 @@
-use osa::Matrix;
+use osa::{Matrix, Osa};
 
 pub mod grid;
 pub mod osa;
@@ -51,10 +51,23 @@ pub const DEFAULT_OPTIONS_WITH_SUB: Options = Options {
     equals: identical_chars,
 };
 
+pub fn get_osa<T>(source: &str, target: &str, options: Options) -> Osa<T>
+where
+    T: Matrix,
+{
+    let source: Vec<char> = source.chars().collect();
+    let target: Vec<char> = target.chars().collect();
+    let matrix = T::new(source.len() + 1, target.len() + 1);
+    let osa = osa::Osa::new(source, target, options, matrix);
+    return osa;
+}
+
 pub fn get_script<T>(source: &str, target: &str, options: Options) -> EditScript
 where
     T: Matrix,
 {
+    let source: Vec<char> = source.chars().collect();
+    let target: Vec<char> = target.chars().collect();
     let matrix = T::new(source.len() + 1, target.len() + 1);
     let mut osa = osa::Osa::new(source, target, options, matrix);
     return osa.edit_script_for_strings();
@@ -64,6 +77,8 @@ pub fn get_matrix<T>(source: &str, target: &str, options: Options) -> T
 where
     T: Matrix,
 {
+    let source: Vec<char> = source.chars().collect();
+    let target: Vec<char> = target.chars().collect();
     let matrix = T::new(source.len() + 1, target.len() + 1);
     let mut osa = osa::Osa::new(source, target, options, matrix);
     osa.matrix_for_strings();

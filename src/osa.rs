@@ -8,6 +8,8 @@ pub trait Matrix {
     fn get(&self, x: usize, y: usize) -> usize;
 
     fn new(x: usize, y: usize) -> Self;
+
+    fn get_last_cell(&self) -> usize;
 }
 
 pub struct Osa<T>
@@ -24,19 +26,19 @@ impl<T> Osa<T>
 where
     T: Matrix,
 {
-    pub fn new(source: &str, target: &str, options: Options, matrix: T) -> Osa<T>
+    pub fn new(source: Vec<char>, target: Vec<char>, options: Options, matrix: T) -> Osa<T>
     where
         T: Matrix,
     {
-        let source: Vec<char> = source.chars().collect();
-        let target: Vec<char> = target.chars().collect();
-
         return Osa {
             matrix,
             source,
             target,
             options,
         };
+    }
+    pub fn get_cost(&self) -> usize {
+        return self.matrix.get_last_cell();
     }
     pub fn get_matrix(&self) -> &T {
         return &self.matrix;
@@ -47,17 +49,17 @@ where
     }
 
     pub fn matrix_for_strings(&mut self) {
-        let height = self.source.len() + 1;
-        let width = self.target.len() + 1;
+        let y = self.source.len() + 1;
+        let x = self.target.len() + 1;
 
-        for i in 0..height {
+        for i in 0..y {
             self.matrix.set(i, 0, i * self.options.del_cost);
         }
-        for j in 0..width {
+        for j in 0..x {
             self.matrix.set(0, j, j * self.options.ins_cost);
         }
-        for i in 1..height {
-            for j in 1..width {
+        for i in 1..y {
+            for j in 1..x {
                 let del_cost = self.matrix.get(i - 1, j) + self.options.del_cost;
                 let mut match_sub_cost = self.matrix.get(i - 1, j - 1);
                 if !(self.options.equals)(self.source[(i - 1)], self.target[j - 1]) {

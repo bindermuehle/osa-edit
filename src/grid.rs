@@ -18,4 +18,7 @@ impl Matrix for GridMatrix {
             matrix: Grid::new(x, y),
         };
     }
+    fn get_last_cell(&self) -> usize {
+        return self.matrix[self.matrix.rows() - 1][self.matrix.cols() - 1];
+    }
 }
