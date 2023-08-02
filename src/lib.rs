@@ -33,6 +33,7 @@ pub struct Options {
     sub_cost: usize,
     transp_cost: usize,
     equals: MatchFunction,
+    min_cost_when_target_shorter: bool,
 }
 
 pub const DEFAULT_OPTIONS: Options = Options {
@@ -41,6 +42,7 @@ pub const DEFAULT_OPTIONS: Options = Options {
     sub_cost: 1,
     transp_cost: 1,
     equals: identical_chars,
+    min_cost_when_target_shorter: true,
 };
 
 pub const DEFAULT_OPTIONS_WITH_SUB: Options = Options {
@@ -49,6 +51,7 @@ pub const DEFAULT_OPTIONS_WITH_SUB: Options = Options {
     sub_cost: 1,
     transp_cost: 1,
     equals: identical_chars,
+    min_cost_when_target_shorter: true,
 };
 
 pub fn get_osa<T>(source: &str, target: &str, options: Options) -> Osa<T>

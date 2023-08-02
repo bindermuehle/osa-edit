@@ -10,6 +10,10 @@ pub trait Matrix {
     fn new(x: usize, y: usize) -> Self;
 
     fn get_last_cell(&self) -> usize;
+
+    fn shrink(&mut self, x: usize);
+
+    fn get_size(&self) -> (usize, usize);
 }
 
 pub struct Osa<T>
@@ -45,21 +49,21 @@ where
     }
     pub fn edit_script_for_strings(&mut self) -> EditScript {
         self.matrix_for_strings();
-        return self.backtrace(self.source.len(), self.target.len());
+        return self.backtrace(self.matrix.get_size().0 - 1, self.matrix.get_size().1 - 1);
     }
 
     pub fn matrix_for_strings(&mut self) {
-        let y = self.source.len() + 1;
-        let x = self.target.len() + 1;
+        let s = self.source.len();
+        let t = self.target.len();
 
-        for i in 0..y {
+        for i in 0..s + 1 {
             self.matrix.set(i, 0, i * self.options.del_cost);
         }
-        for j in 0..x {
+        for j in 0..t + 1 {
             self.matrix.set(0, j, j * self.options.ins_cost);
         }
-        for i in 1..y {
-            for j in 1..x {
+        for i in 1..s + 1 {
+            for j in 1..t + 1 {
                 let del_cost = self.matrix.get(i - 1, j) + self.options.del_cost;
                 let mut match_sub_cost = self.matrix.get(i - 1, j - 1);
                 if !(self.options.equals)(self.source[(i - 1)], self.target[j - 1]) {
@@ -78,6 +82,17 @@ where
                         .set(i, j, cmp::min(self.matrix.get(i, j), transp_cost));
                 }
             }
+        }
+        if self.target.len() < self.source.len() && self.options.min_cost_when_target_shorter {
+            let mut min = self.matrix.get(t, t);
+            let mut index = t;
+            for i in t..s + 1 {
+                if min > self.matrix.get(i, t) {
+                    min = self.matrix.get(i, t);
+                    index = i;
+                }
+            }
+            let _ = &self.matrix.shrink(index + 1);
         }
     }
 

@@ -3,6 +3,8 @@ use super::osa::Matrix;
 #[derive(Debug, Clone)]
 pub struct VecMatrix {
     pub matrix: Vec<Vec<usize>>,
+    x: usize,
+    y: usize,
 }
 
 impl Matrix for VecMatrix {
@@ -15,11 +17,17 @@ impl Matrix for VecMatrix {
     fn new(x: usize, y: usize) -> VecMatrix {
         return VecMatrix {
             matrix: vec![vec![0; y]; x],
+            x,
+            y,
         };
     }
     fn get_last_cell(&self) -> usize {
-        let x = self.matrix.len() - 1;
-        let y = self.matrix[0].len() - 1;
-        return self.matrix[x][y];
+        return self.matrix[self.x - 1][self.y - 1];
+    }
+    fn shrink(&mut self, x: usize) {
+        self.x = x;
+    }
+    fn get_size(&self) -> (usize, usize) {
+        return (self.x, self.y);
     }
 }

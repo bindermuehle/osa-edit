@@ -2,7 +2,12 @@
 name = "osa_edit"
 version = "0.1.0"
 edition = "2021"
-
+authors = ["Benjamin Indermuehlee <benjamin.indermuehle@gmail.com>"]
+description = "Implementation of the Optimal string alignment distance https://en.wikipedia.org/wiki/Damerau–Levenshtein_distance with backtracing"
+repository = "https://github.com/bindermuehle/osa-edit.git"
+keywords = ["algorithm", "osa", "backtrace"]
+readme = "README.md"
+license = "MIT"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]

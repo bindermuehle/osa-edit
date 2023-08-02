@@ -4,6 +4,8 @@ use crate::osa::Matrix;
 
 pub struct GridMatrix {
     pub matrix: Grid<usize>,
+    x: usize,
+    y: usize,
 }
 
 impl Matrix for GridMatrix {
@@ -16,9 +18,17 @@ impl Matrix for GridMatrix {
     fn new(x: usize, y: usize) -> GridMatrix {
         return GridMatrix {
             matrix: Grid::new(x, y),
+            x,
+            y,
         };
     }
     fn get_last_cell(&self) -> usize {
-        return self.matrix[self.matrix.rows() - 1][self.matrix.cols() - 1];
+        return self.matrix[&self.x - 1][self.y - 1];
+    }
+    fn shrink(&mut self, x: usize) {
+        self.x = x;
+    }
+    fn get_size(&self) -> (usize, usize) {
+        return (self.x, self.y);
     }
 }
