@@ -66,7 +66,7 @@ where
             for j in 1..t + 1 {
                 let del_cost = self.matrix.get(i - 1, j) + self.options.del_cost;
                 let mut match_sub_cost = self.matrix.get(i - 1, j - 1);
-                if !(self.options.equals)(self.source[(i - 1)], self.target[j - 1]) {
+                if !(self.options.equals)(self.source[i - 1], self.target[j - 1]) {
                     match_sub_cost += self.options.sub_cost;
                 }
                 let ins_cost = self.matrix.get(i, j - 1) + self.options.ins_cost;
